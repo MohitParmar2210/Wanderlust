@@ -17,7 +17,8 @@ module.exports.showListing=async(req,res)=>{
         path:"author",
     },
 })
-    .populate("owner");
+    .populate("owner")
+    .populate("bookedBy");
     if(!listing)
     {
         req.flash("error","Listing you requested for does not exist!");
@@ -73,6 +74,73 @@ module.exports.destroyListing=async(req,res)=>{
      console.log(deletedlisting);
      req.flash("success","Listing Deleted!");
      res.redirect("/listings");
+};
+
+module.exports.bookListing = async(req, res) => {
+    let {id} = req.params;
+    const listing = await Listing.findById(id);
+    
+    if (!listing) {
+        req.flash("error", "Listing not found!");
+        return res.redirect("/listings");
+    }
+    
+    if (listing.booked) {
+        req.flash("error", "This listing is already booked!");
+        return res.redirect(`/listings/${id}`);
+    }
+    
+    // Save booking details from form
+    listing.booked = true;
+    listing.bookedBy = req.user._id;
+    listing.startDate = req.body.startDate;
+    listing.endDate = req.body.endDate;
+    listing.paymentNote = req.body.paymentNote;
+    await listing.save();
+    
+    req.flash("success", "Listing booked successfully!");
+    res.redirect(`/listings/${id}`);
+};
+
+module.exports.cancelBooking = async(req, res) => {
+    let {id} = req.params;
+    const listing = await Listing.findById(id).populate("bookedBy");
+    
+    if (!listing) {
+        req.flash("error", "Listing not found!");
+        return res.redirect("/listings");
+    }
+    
+    if (!listing.booked) {
+        req.flash("error", "This listing is not booked!");
+        return res.redirect(`/listings/${id}`);
+    }
+    
+    // Check if user is the booker or the listing owner
+    const isBooker = listing.bookedBy && listing.bookedBy._id.equals(req.user._id);
+    const isOwner = listing.owner.equals(req.user._id);
+    
+    if (!isBooker && !isOwner) {
+        req.flash("error", "You can only cancel bookings you made or own!");
+        return res.redirect(`/listings/${id}`);
+    }
+    
+    listing.booked = false;
+    listing.bookedBy = null;
+    await listing.save();
+    
+    req.flash("success", "Booking cancelled successfully!");
+    res.redirect(`/listings/${id}`);
+};
+
+module.exports.ownerListings = async (req, res) => {
+    const listings = await Listing.find({ owner: req.user._id }).populate('bookedBy');
+    res.render('listings/owner.ejs', { listings });
+};
+
+module.exports.myBookings = async (req, res) => {
+    const listings = await Listing.find({ bookedBy: req.user._id }).populate('owner');
+    res.render('listings/myBookings.ejs', { listings });
 };
 
 //mvc framework

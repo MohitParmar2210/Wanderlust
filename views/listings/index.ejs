@@ -96,7 +96,12 @@
             <a href="/listings/<%= listing._id %>" class="listing-link">
     <div class="card col listing-card" >
        <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image"style="height: 20rem">
-       <div class="card-img-overlay">abcd</div>
+       <% if (listing.booked) { %>
+         <span class="badge bg-danger" style="position: absolute; left: 1rem; top: 18rem; font-size: 1rem;">Booked</span>
+       <% } else { %>
+         <span class="badge bg-success" style="position: absolute; left: 1rem; top: 18rem; font-size: 1rem;">Available</span>
+       <% } %>
+      <div class="card-img-overlay">abcd</div>
       <div class="card-body">
         <h5 class="card-title">Card title</h5>
         <p class="card-text">

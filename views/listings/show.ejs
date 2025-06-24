@@ -12,10 +12,93 @@
           <p class="card-text">  &#8377 <%= listing.price.toLocaleString("en-IN") %> <br></p>
           <p class="card-text"> <%= listing.location %> <br></p>
           <p class="card-text">  <%= listing.country %></p>
+          
+          <!-- Booking Status Section -->
+          <div class="booking-status mt-3">
+            <% if(listing.booked) { %>
+              <div class="alert alert-warning" role="alert">
+                <strong> Booked</strong>
+                <% if(listing.bookedBy) { %>
+                  <br><small>Booked by: <%= listing.bookedBy.username %></small>
+                <% } %>
+              </div>
+            <% } else { %>
+              <div class="alert alert-success" role="alert">
+                <strong>Available for booking</strong>
+              </div>
+            <% } %>
+          </div>
        
         </div>
     </div>
     <br>
+    
+    <!-- Booking Actions Section -->
+    <div class="booking-actions col-6 offset-3 mb-3">
+      <% if (currUser) { %>
+        <% if (listing.booked) { %>
+          <button type="button" class="btn btn-secondary btn-lg" disabled>Already Booked</button>
+          <% const isBooker = listing.bookedBy && listing.bookedBy._id.equals(currUser._id); %>
+          <% const isOwner = listing.owner._id.equals(currUser._id); %>
+          <% if (isBooker || isOwner) { %>
+            <form method="POST" action="/listings/<%= listing._id %>/cancel" class="d-inline">
+              <button type="submit" class="btn btn-danger btn-lg"
+                      onclick="return confirm('Are you sure you want to cancel this booking?')">
+                Cancel Booking
+              </button>
+            </form>
+          <% } %>
+        <% } else { %>
+          <!-- Book Now Button (Modal Trigger) -->
+          <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#bookingModal">
+            Book Now
+          </button>
+          <!-- Booking Modal -->
+          <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form method="POST" action="/listings/<%= listing._id %>/book">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="bookingModalLabel">Book Listing</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <label class="form-label">User Name</label>
+                      <input type="text" class="form-control" value="<%= currUser.username %>" readonly>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Email</label>
+                      <input type="email" class="form-control" value="<%= currUser.email %>" readonly>
+                    </div>
+                    <div class="mb-3">
+                      <label for="startDate" class="form-label">Start Date</label>
+                      <input type="date" class="form-control" id="startDate" name="startDate" required>
+                    </div>
+                    <div class="mb-3">
+                      <label for="endDate" class="form-label">End Date</label>
+                      <input type="date" class="form-control" id="endDate" name="endDate" required>
+                    </div>
+                    <div class="mb-3">
+                      <label for="paymentNote" class="form-label">Payment Note (optional)</label>
+                      <input type="text" class="form-control" id="paymentNote" name="paymentNote">
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      <% } else { %>
+        <div class="alert alert-info" role="alert">
+          <strong>Please <a href="/login">login</a> to book this listing</strong>
+        </div>
+      <% } %>
+    </div>
     
   <% if(currUser && listing.owner._id.equals(currUser._id)) { %>
     <div class="btns">

@@ -1,0 +1,32 @@
+<% layout("layout/boilerplate") %>
+<div class="container mt-5">
+  <h2>My Booked Listings</h2>
+  <% if (listings.length === 0) { %>
+    <div class="alert alert-info">You have not booked any listings yet.</div>
+  <% } else { %>
+    <table class="table table-bordered mt-4">
+      <thead class="table-dark">
+        <tr>
+          <th>Title</th>
+          <th>Owner</th>
+          <th>Location</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Payment Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% listings.forEach(listing => { %>
+          <tr>
+            <td><a href="/listings/<%= listing._id %>"><%= listing.title %></a></td>
+            <td><%= listing.owner ? listing.owner.username : 'N/A' %></td>
+            <td><%= listing.location %></td>
+            <td><%= listing.startDate ? listing.startDate.toLocaleDateString() : 'N/A' %></td>
+            <td><%= listing.endDate ? listing.endDate.toLocaleDateString() : 'N/A' %></td>
+            <td><%= listing.paymentNote || 'N/A' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div> 

@@ -28,6 +28,24 @@ const listingSchema=new Schema({
         type:Schema.Types.ObjectId,
         ref:"User",
     },
+    booked: {
+        type: Boolean,
+        default: false,
+    },
+    bookedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+    },
+    startDate: {
+        type: Date,
+    },
+    endDate: {
+        type: Date,
+    },
+    paymentNote: {
+        type: String,
+    },
     // category:{
     //     type:String,
     //     enum:["mountains","arctic","farms","deserts","room"]

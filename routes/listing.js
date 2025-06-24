@@ -2,12 +2,24 @@ const express= require("express");
 const router= express.Router();
 const wrapAsync = require("../utils/wrapAsync.js");
 const Listing=require("../models/listing.js");
-const{isLoggedIn, isOwner,validateListing}=require("../middleware.js");
+const{isLoggedIn, isOwner,validateListing, canCancelBooking}=require("../middleware.js");
 const listingController=require("../controllers/listings.js");
 const multer  = require('multer')//for file upload image
 const {storage}=require("../cloudConfig.js");
 const upload = multer({ storage });
 
+// Place /search route before any dynamic :id routes
+router.get("/search", async (req, res) => {
+  const location = req.query.location;
+  let listings = [];
+  if (location) {
+    listings = await Listing.find({ location: { $regex: new RegExp(location, 'i') } });
+  }
+  res.render("listings/search.ejs", { listings, location });
+});
+
+// Place /my-bookings route before any dynamic :id routes
+router.get("/my-bookings", isLoggedIn, wrapAsync(listingController.myBookings));
 
 //Index Route
 router.get("/",wrapAsync(listingController.index)
@@ -47,5 +59,13 @@ router.delete("/:id",isLoggedIn,
     isOwner,
     wrapAsync(listingController.destroyListing)
 );
+
+//Booking Routes
+router.post("/:id/book", isLoggedIn, wrapAsync(listingController.bookListing));
+
+router.post("/:id/cancel", isLoggedIn, canCancelBooking, wrapAsync(listingController.cancelBooking));
+
+// Owner's Listings Route
+router.get("/owner/listings", isLoggedIn, wrapAsync(listingController.ownerListings));
 
 module.exports=router;

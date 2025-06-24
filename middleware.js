@@ -66,3 +66,29 @@ module.exports.isreviewAuthor= async(req,res,next)=>{
 
      next();
 };
+
+module.exports.canCancelBooking = async(req, res, next) => {
+    let {id} = req.params;
+    let listing = await Listing.findById(id).populate("bookedBy");
+    
+    if (!listing) {
+        req.flash("error", "Listing not found!");
+        return res.redirect("/listings");
+    }
+    
+    if (!listing.booked) {
+        req.flash("error", "This listing is not booked!");
+        return res.redirect(`/listings/${id}`);
+    }
+    
+    // Check if user is the booker or the listing owner
+    const isBooker = listing.bookedBy && listing.bookedBy._id.equals(req.user._id);
+    const isOwner = listing.owner.equals(req.user._id);
+    
+    if (!isBooker && !isOwner) {
+        req.flash("error", "You can only cancel bookings you made or own!");
+        return res.redirect(`/listings/${id}`);
+    }
+    
+    next();
+};
